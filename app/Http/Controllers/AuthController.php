@@ -20,16 +20,23 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        return redirect()->route('login')->with('success', 'Account created successfully.');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Account created successfully',
+            'user' => $user
+        ], 201);
     }
 
     // LOGIN
@@ -43,16 +50,25 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->intended('dashboard'); // or home page
+        if (!Auth::attempt($credentials)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid credentials'
+            ], 401);
         }
 
-        return back()->withErrors([
-            'email' => 'Invalid credentials.',
+        $user = Auth::user();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Logged in successfully',
+            'user' => $user
         ]);
     }
 
@@ -60,8 +76,10 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/login');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Logged out successfully'
+        ]);
     }
 }
