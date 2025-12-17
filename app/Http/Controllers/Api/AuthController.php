@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    // SIGNUP
     public function signup(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -21,10 +20,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
         }
 
         $user = User::create([
@@ -33,43 +29,18 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Account created successfully',
-            'user' => $user
-        ], 201);
+        return response()->json(['status' => 'success', 'message' => 'Account created', 'user' => $user], 201);
     }
 
-    // LOGIN
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
 
-        $validator = Validator::make($credentials, [
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
         if (!Auth::attempt($credentials)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid credentials'
-            ], 401);
+            return response()->json(['status' => 'error', 'message' => 'Invalid credentials'], 401);
         }
 
         $user = Auth::user();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Logged in successfully',
-            'user' => $user
-        ]);
+        return response()->json(['status' => 'success', 'message' => 'Logged in', 'user' => $user]);
     }
 }
