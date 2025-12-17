@@ -20,14 +20,10 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            // If request expects JSON, return JSON, else redirect
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-            return back()->withErrors($validator)->withInput();
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
         $user = User::create([
@@ -36,15 +32,11 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        if ($request->wantsJson()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Account created successfully',
-                'user' => $user
-            ], 201);
-        }
-
-        return redirect()->route('login')->with('success', 'Account created successfully.');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Account created successfully',
+            'user' => $user
+        ], 201);
     }
 
     // LOGIN
@@ -58,55 +50,25 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-            return back()->withErrors($validator)->withInput();
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
         if (!Auth::attempt($credentials)) {
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Invalid credentials'
-                ], 401);
-            }
-            return back()->withErrors([
-                'email' => 'Invalid credentials.'
-            ]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid credentials'
+            ], 401);
         }
 
-        $request->session()->regenerate();
         $user = Auth::user();
 
-        if ($request->wantsJson()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Logged in successfully',
-                'user' => $user
-            ]);
-        }
-
-        return redirect()->intended('dashboard');
-    }
-
-    // LOGOUT
-    public function logout(Request $request)
-    {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        if ($request->wantsJson()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Logged out successfully'
-            ]);
-        }
-
-        return redirect('/login');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Logged in successfully',
+            'user' => $user
+        ]);
     }
 }
